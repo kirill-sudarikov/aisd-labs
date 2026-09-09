@@ -3,28 +3,90 @@ import std;
 template <typename T>
 class polynomial final {
 private:
-  int _deg = 0;
-  int _capacity = 0;
   T *_coeffs = nullptr;
+  std::size_t _degree = 0;
+  std::size_t _capacity = 0;
 
-public:
-  polynomial(int max_deg) : _deg(0), _capacity(0), _coeffs(nullptr) {
-    if (max_deg < 0) {
-      throw std::invalid_argument("max_deg must be non-negative");
+  void normalize() {
+    std::size_t new_degree = 0;
+
+    for (std::size_t i = 0; i < _capacity; ++i) {
+      if (_coeffs[i] != T()) {
+        new_degree = i;
+      }
     }
 
-    _capacity = max_deg + 1;
+    _degree = new_degree;
+  }
+
+public:
+  polynomial(std::size_t max_degree)
+      : _coeffs(new T[max_degree + 1]), _degree(0), _capacity(max_degree + 1) {}
+
+  polynomial(const std::vector &coeffs) {
+    if (coeffs.empty()) {
+      _degree = 0;
+      _capacity = 1;
+      _coeffs = new T[_capacity]();
+    }
+
+    _capacity = coeffs.size();
     _coeffs = new T[_capacity]();
+    for (std::size_t i = 0; i < _capacity; ++i) {
+      _coeffs[i] = coeffs[i];
+    }
+    normalize();
+  }
+
+  polynomial(const polynomial &other)
+      : _coeffs(new T[other._capacity]()), _degree(other._degree),
+        _capacity(other._capacity) {
+    for (std::size_t i = 0; i < other._capacity; ++i) {
+      _coeffs[i] = other._coeffs[i];
+    }
+  }
+
+  polynomial(polynomial &&other)
+      : _coeffs(other._coeffs), _degree(other._degree),
+        _capacity(other._capacity) {
+    other._coeffs = nullptr;
+    other._degree = 0;
+    other._capacity = 0;
+  }
+
+  polynomial &operator=(const polynomial &other) {
+    if (this != &other) {
+      delete[] _coeffs;
+      _coeffs = nullptr;
+
+      _coeffs = new T[other._capacity]();
+      for (std::size_t i = 0; i < other._capacity; ++i) {
+        _coeffs[i] = other._coeffs[i];
+      }
+      _degree = other._degree;
+      _capacity = other._capacity;
+    }
+
+    return *this;
+  }
+
+  polynomial &operator=(polynomial &&other) {
+    if (this != &other) {
+      delete[] _coeffs;
+
+      _coeffs = other._coeffs;
+      _degree = other._degree;
+      _capacity = other._capacity;
+
+      other._coeffs = nullptr;
+      other._degree = 0;
+      other._capacity = 0;
+    }
+
+    return *this;
   }
 
   ~polynomial() { delete[] _coeffs; }
 };
 
-int main() {
-  try {
-    polynomial<int> p(-2);
-  } catch (const std::exception& e) {
-    std::cerr << "Error: " << e.what() << '\n';
-  }
-  return 0;
-}
+int main() { return 0; }
