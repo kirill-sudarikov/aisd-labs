@@ -86,6 +86,39 @@ public:
     return *this;
   }
 
+  T operator[](std::size_t degree) const {
+    if (degree > _degree) {
+      return T();
+    }
+
+    return _coeffs[degree];
+  }
+
+  void expand(std::size_t degree) {
+    if (degree < _capacity) {
+      throw std::runtime_error(
+          "requested degree is already within allocated capacity");
+    }
+
+    T *new_coeffs = new T[degree + 1]();
+
+    for (std::size_t i = 0; i < _capacity; ++i) {
+      new_coeffs[i] = _coeffs[i];
+    }
+
+    delete[] _coeffs;
+    _coeffs = new_coeffs;
+    _capacity = degree + 1;
+  }
+
+  void set(std::size_t degree, const T &coeff) {
+    if (degree >= _capacity) {
+      expand(degree);
+    }
+
+    _coeffs[degree] = coeff;
+  }
+
   ~polynomial() { delete[] _coeffs; }
 };
 
