@@ -94,6 +94,34 @@ public:
     return _coeffs[degree];
   }
 
+  polynomial &operator+=(const polynomial &other) {
+    if (other._degree >= _capacity) {
+      expand(other._degree);
+    }
+
+    for (std::size_t i = 0; i <= other._degree; ++i) {
+      _coeffs[i] += other._coeffs[i];
+    }
+
+    normalize();
+
+    return *this;
+  }
+
+  polynomial &operator-=(const polynomial &other) {
+    if (other._degree >= _capacity) {
+      expand(other._degree);
+    }
+
+    for (std::size_t i = 0; i <= other._degree; ++i) {
+      _coeffs[i] -= other._coeffs[i];
+    }
+
+    normalize();
+
+    return *this;
+  }
+
   void expand(std::size_t degree) {
     if (degree < _capacity) {
       throw std::runtime_error(
@@ -121,5 +149,10 @@ public:
 
   ~polynomial() { delete[] _coeffs; }
 };
+
+template <typename T>
+polynomial<T> operator+(polynomial<T> a, const polynomial<T> &b) {
+  return a += b;
+}
 
 int main() { return 0; }
