@@ -133,11 +133,56 @@ public:
 
   bool operator!=(const Polynomial &other) const { return !(*this == other); }
 
-  friend std::ostream &operator<<(std::ostream &os, const Polynomial &p) {}
+  friend std::ostream &operator<<(std::ostream &os, const Polynomial &p) {
+    if (p._degree == 0 && p._coef[0] == T()) {
+      return os << 0;
+    }
+
+    bool is_first = true;
+
+    for (std::size_t i = p._degree + 1; i-- > 0;) {
+      if (p._coef[i] == T()) {
+        continue;
+      }
+
+      if constexpr (is_complex_v<T>) {
+        if (!is_first) {
+          os << "+";
+        }
+
+        os << '(' << std::noshowpos << p._coef[i].real() << std::showpos
+           << p._coef[i].imag() << std::noshowpos << "i)";
+
+      } else {
+        if (is_first) {
+          os << std::noshowpos << p._coef[i];
+        } else {
+          os << std::showpos << p._coef[i];
+        }
+      }
+
+      is_first = false;
+
+      if (i == 1) {
+        os << 'x';
+      } else if (i != 0) {
+        os << 'x' << '^' << i;
+      }
+    }
+
+    return os << std::noshowpos;
+  }
 
   ~Polynomial() { // Деструктор
     delete[] _coef;
   }
 };
 
-int main() { return 0; }
+int main() {
+
+  std::vector<int> coef = {1, -2, 0, 7, 0};
+  Polynomial<int> p(coef);
+
+  std::cout << p;
+  return 0;
+}
