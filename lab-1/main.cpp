@@ -133,6 +133,18 @@ public:
 
   bool operator!=(const Polynomial &other) const { return !(*this == other); }
 
+  T operator[](int degree) const {
+    if (degree < 0) {
+      throw std::invalid_argument("degree must be non-negative");
+    }
+
+    if (degree > _degree) {
+      return T();
+    }
+
+    return _coef[degree];
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Polynomial &p) {
     if (p._degree == 0 && p._coef[0] == T()) {
       return os << 0;
@@ -173,6 +185,49 @@ public:
     return os << std::noshowpos;
   }
 
+  void expand(int degree) {
+    if (degree < 0) {
+      throw std::invalid_argument("degree must be non-negative");
+    }
+
+    if (degree < _capacity) {
+      return;
+    } else {
+      std::size_t new_capacity = degree + 1;
+      T *new_coef = new T[new_capacity]();
+      std::size_t new_size = new_capacity;
+
+      for (std::size_t i = 0; i <= _degree; ++i) {
+        new_coef[i] = _coef[i];
+      }
+
+      delete[] _coef;
+      _coef = new_coef;
+      _capacity = new_capacity;
+      _size = new_size;
+    }
+  }
+
+  void shrink_to_fit() {
+    std::size_t new_capacity = _degree + 1;
+
+    if (_capacity == new_capacity) {
+      return;
+    } else {
+      T *new_coef = new T[new_capacity]();
+      std::size_t new_size = new_capacity;
+
+      for (std::size_t i = 0; i <= _degree; ++i) {
+        new_coef[i] = _coef[i];
+      }
+
+      delete[] _coef;
+      _coef = new_coef;
+      _capacity = new_capacity;
+      _size = new_size;
+    }
+  }
+
   ~Polynomial() { // Деструктор
     delete[] _coef;
   }
@@ -183,6 +238,11 @@ int main() {
   std::vector<int> coef = {1, -2, 0, 7, 0};
   Polynomial<int> p(coef);
 
-  std::cout << p;
+  try {
+    p.expand(-1);
+  } catch (const std::exception &e) {
+    std::cerr << e.what() << '\n';
+  }
+
   return 0;
 }
