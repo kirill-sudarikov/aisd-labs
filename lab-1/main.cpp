@@ -9,6 +9,16 @@ struct is_complex<std::complex<T>> : std::true_type {};
 template <typename T>
 constexpr bool is_complex_v = is_complex<T>::value;
 
+template <typename U>
+struct complex_traits {
+  using real_type = void;
+};
+
+template <typename U>
+struct complex_traits<std::complex<U>> {
+  using real_type = U;
+};
+
 template <class T>
 class Polynomial {
 private:
@@ -16,17 +26,50 @@ private:
   std::size_t _size = 0;
   std::size_t _capacity = 0;
   std::size_t _degree = 0;
+  static constexpr float EPS_FLOAT = 1e-9f;
+  static constexpr double EPS_DOUBLE = 1e-6;
 
   void normalize_degree() { // Метод нормализации степени
-    std::size_t max_degree = 0;
+    auto get_eps = []() {
+      if constexpr (is_complex_v<T>) {
+        using real_type = typename complex_traits<T>::real_type;
 
-    for (std::size_t i = 0; i < _size; ++i) {
-      if (_coef[i] != T()) {
-        max_degree = i;
+        if constexpr (std::is_same_v<real_type, float>)
+          return EPS_FLOAT;
+        else if constexpr (std::is_same_v<real_type, double>)
+          return EPS_DOUBLE;
+        else if constexpr (std::is_same_v<real_type, int>)
+          return 0.0;
+      } else {
+        if constexpr (std::is_same_v<T, float>)
+          return EPS_FLOAT;
+        else if constexpr (std::is_same_v<T, double>)
+          return EPS_DOUBLE;
+        else if constexpr (std::is_same_v<T, int>)
+          return 0;
+      }
+    };
+
+    const auto eps = get_eps();
+
+    if constexpr (is_complex_v<T>) {
+      for (std::size_t i = _size; i > 0; --i) {
+        if (std::abs(_coef[i - 1].real()) > eps ||
+            std::abs(_coef[i - 1].imag()) > eps) {
+          _degree = i - 1;
+          return;
+        }
+      }
+    } else {
+      for (std::size_t i = _size; i > 0; --i) {
+        if (std::abs(_coef[i - 1]) > eps) {
+          _degree = i - 1;
+          return;
+        }
       }
     }
 
-    _degree = max_degree;
+    _degree = 0;
   }
 
 public:
@@ -228,6 +271,20 @@ public:
     }
   }
 
+  void set(int degree, T value) {
+    if (degree < 0) {
+      throw std::invalid_argument("degree must be non-negative");
+    }
+
+    if (degree >= _capacity) {
+      expand(degree);
+    }
+
+    _coef[degree] = value;
+
+    normalize_degree();
+  }
+
   ~Polynomial() { // Деструктор
     delete[] _coef;
   }
@@ -235,14 +292,12 @@ public:
 
 int main() {
 
-  std::vector<int> coef = {1, -2, 0, 7, 0};
-  Polynomial<int> p(coef);
+  std::vector<std::complex<double>> coef = {{0.0, 4.0}, {0.0, 5.0}, {0.0, 0.0}};
+  Polynomial<std::complex<double>> p(coef);
 
-  try {
-    p.expand(-1);
-  } catch (const std::exception &e) {
-    std::cerr << e.what() << '\n';
-  }
+  std::cout << p;
+  p.set(4, {0.1, 5.0});
+  std::cout << p;
 
   return 0;
 }
