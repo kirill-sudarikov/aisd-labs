@@ -178,6 +178,7 @@ public:
 
   bool operator!=(const Polynomial &other) const { return !(*this == other); }
 
+  std::size_t degree() const noexcept { return _degree; }
   T operator[](int degree) const {
     if (degree < 0) {
       throw std::invalid_argument("degree must be non-negative");
@@ -355,4 +356,53 @@ Polynomial<T> operator*(Polynomial<T> p, const T &scalar) {
 export template <class T>
 Polynomial<T> operator*(const T &scalar, Polynomial<T> p) {
   return p *= scalar;
+}
+
+export template <typename T>
+auto find_linear_root(const Polynomial<T> &p) {
+  using R = std::conditional_t<std::is_integral_v<T>, double, T>;
+
+  if (p.degree() != 1) {
+    throw std::invalid_argument("Polynomial degree must be 1");
+  }
+
+  const R a = R(p[1]);
+  const R b = R(p[0]);
+
+  if (a == R{}) {
+    throw std::invalid_argument("Leading coefficient must not be zero");
+  }
+
+  return -b / a;
+}
+
+export template <typename T>
+auto find_quadratic_roots(const Polynomial<T> &p) {
+  using R = std::conditional_t<std::is_integral_v<T>, double, T>;
+
+  if (p.degree() != 2) {
+    throw std::invalid_argument("Polynomial degree must be 2");
+  }
+
+  const R a = R(p[2]);
+  const R b = R(p[1]);
+  const R c = R(p[0]);
+
+  if (a == R{}) {
+    throw std::invalid_argument("Leading coefficient must not be zero");
+  }
+
+  const R discriminant = b * b - R(4) * a * c;
+
+  if constexpr (std::is_floating_point_v<R>) {
+    if (discriminant < R{}) {
+      throw std::domain_error("Polynomial has no real roots");
+    }
+  }
+
+  const R sqrt_d = std::sqrt(discriminant);
+  const R denominator = R(2) * a;
+
+  return std::pair<R, R>{(-b + sqrt_d) / denominator,
+                         (-b - sqrt_d) / denominator};
 }
