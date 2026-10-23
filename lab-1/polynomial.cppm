@@ -31,7 +31,7 @@ private:
   static constexpr float EPS_FLOAT = 1e-9f;
   static constexpr double EPS_DOUBLE = 1e-6;
 
-  void normalize_degree() { // Метод нормализации степени
+  void normalize_degree() {
     auto get_eps = []() {
       if constexpr (is_complex_v<T>) {
         using real_type = typename complex_traits<T>::real_type;
@@ -75,24 +75,22 @@ private:
   }
 
 public:
-  Polynomial() {     // Конструктор по умолчанию
-    _coef = new T(); // гарантировано нулевое значение
+  Polynomial() {
+    _coef = new T();
     _size = 1;
     _capacity = 1;
     _degree = 0;
   }
 
-  Polynomial(const std::size_t max_degree) { // Конструктор с параметрами:
-                                             // максимальная степень многочлена
+  Polynomial(const std::size_t max_degree) {
+
     _coef = new T[max_degree + 1]();
     _size = max_degree + 1;
-    _capacity = _size; // Потому что все элементы занулены при выделении памяти
+    _capacity = _size;
     _degree = 0;
   }
 
-  Polynomial(
-      const std::vector<T> &coef) { // Конструктор с параметрами: вектор
-                                    // значений при соответствующих степенях
+  Polynomial(const std::vector<T> &coef) {
     _size = coef.size();
     _coef = new T[_size];
     _capacity = _size;
@@ -102,7 +100,7 @@ public:
     normalize_degree();
   }
 
-  Polynomial(const Polynomial &other) { // Конструктор копирования
+  Polynomial(const Polynomial &other) {
     _size = other._size;
     _coef = new T[_size]();
     _capacity = _size;
@@ -112,7 +110,7 @@ public:
     normalize_degree();
   }
 
-  Polynomial(Polynomial &&other) noexcept { // Конструктор перемещения
+  Polynomial(Polynomial &&other) noexcept {
     _coef = other._coef;
     _size = other._size;
     _capacity = other._capacity;
@@ -126,30 +124,25 @@ public:
     normalize_degree();
   }
 
-  friend void swap(Polynomial &l,
-                   Polynomial &r) noexcept { // Дружественная функция для
-                                             // реализации copy-and-swap idiom
+  friend void swap(Polynomial &l, Polynomial &r) noexcept {
     std::swap(l._coef, r._coef);
     std::swap(l._size, r._size);
     std::swap(l._capacity, r._capacity);
     std::swap(l._degree, r._degree);
   }
 
-  Polynomial &
-  operator=(const Polynomial &other) { // Оператор присваивания копированием
+  Polynomial &operator=(const Polynomial &other) {
     Polynomial tmp(other);
     swap(*this, tmp);
     return *this;
   }
 
-  Polynomial &
-  operator=(Polynomial &&other) noexcept { // Оператор присваивания перемещением
+  Polynomial &operator=(Polynomial &&other) noexcept {
     swap(*this, other);
     return *this;
   }
 
-  bool
-  operator==(const Polynomial &other) const { // Оператор сравнения на равенство
+  bool operator==(const Polynomial &other) const {
     if (_degree != other._degree) {
       return false;
     }
@@ -333,9 +326,7 @@ public:
     normalize_degree();
   }
 
-  ~Polynomial() { // Деструктор
-    delete[] _coef;
-  }
+  ~Polynomial() { delete[] _coef; }
 };
 
 export template <class T>
