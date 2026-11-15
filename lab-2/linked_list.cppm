@@ -100,6 +100,9 @@ public:
       delete _head;
     }
 
+    _head = new Node<T>;
+    _head->next = _head;
+
     Node<T> *p = _head;
     Node<T> *q = other._head->next;
 
