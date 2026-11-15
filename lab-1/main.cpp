@@ -76,6 +76,9 @@ int main() {
     std::cout << "Input polynomial degree: ";
     int degree = 0;
     std::cin >> degree;
+    if (degree < 0) {
+      throw std::invalid_argument("degree must be non-negative");
+    }
 
     switch (choice) {
     case 1: {

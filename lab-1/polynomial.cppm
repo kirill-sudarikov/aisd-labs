@@ -28,30 +28,30 @@ private:
   std::size_t _size = 0;
   std::size_t _capacity = 0;
   std::size_t _degree = 0;
-  static constexpr float EPS_FLOAT = 1e-9f;
-  static constexpr double EPS_DOUBLE = 1e-6;
+  static constexpr float EPS_FLOAT = 1e-6f;
+  static constexpr double EPS_DOUBLE = 1e-9;
+
+  static constexpr auto get_eps() {
+    if constexpr (is_complex_v<T>) {
+      using real_type = typename complex_traits<T>::real_type;
+
+      if constexpr (std::is_same_v<real_type, float>)
+        return EPS_FLOAT;
+      else if constexpr (std::is_same_v<real_type, double>)
+        return EPS_DOUBLE;
+      else
+        return 0;
+    } else {
+      if constexpr (std::is_same_v<T, float>)
+        return EPS_FLOAT;
+      else if constexpr (std::is_same_v<T, double>)
+        return EPS_DOUBLE;
+      else
+        return 0;
+    }
+  }
 
   void normalize_degree() {
-    auto get_eps = []() {
-      if constexpr (is_complex_v<T>) {
-        using real_type = typename complex_traits<T>::real_type;
-
-        if constexpr (std::is_same_v<real_type, float>)
-          return EPS_FLOAT;
-        else if constexpr (std::is_same_v<real_type, double>)
-          return EPS_DOUBLE;
-        else if constexpr (std::is_same_v<real_type, int>)
-          return 0.0;
-      } else {
-        if constexpr (std::is_same_v<T, float>)
-          return EPS_FLOAT;
-        else if constexpr (std::is_same_v<T, double>)
-          return EPS_DOUBLE;
-        else if constexpr (std::is_same_v<T, int>)
-          return 0;
-      }
-    };
-
     const auto eps = get_eps();
 
     if constexpr (is_complex_v<T>) {
@@ -172,6 +172,7 @@ public:
   bool operator!=(const Polynomial &other) const { return !(*this == other); }
 
   std::size_t degree() const noexcept { return _degree; }
+
   T operator[](int degree) const {
     if (degree < 0) {
       throw std::invalid_argument("degree must be non-negative");
@@ -326,6 +327,12 @@ public:
     normalize_degree();
   }
 
+  template <typename U>
+  friend auto find_linear_root(const Polynomial<U> &p);
+
+  template <typename U>
+  friend auto find_quadratic_roots(const Polynomial<U> &p);
+
   ~Polynomial() { delete[] _coef; }
 };
 
@@ -360,7 +367,17 @@ auto find_linear_root(const Polynomial<T> &p) {
   const R a = R(p[1]);
   const R b = R(p[0]);
 
-  if (a == R{}) {
+  constexpr auto eps = Polynomial<T>::get_eps();
+
+  bool a_is_zero;
+
+  if constexpr (is_complex_v<R>) {
+    a_is_zero = std::abs(a.real()) <= eps && std::abs(a.imag()) <= eps;
+  } else {
+    a_is_zero = std::abs(a) <= eps;
+  }
+
+  if (a_is_zero) {
     throw std::invalid_argument("Leading coefficient must not be zero");
   }
 
@@ -379,7 +396,17 @@ auto find_quadratic_roots(const Polynomial<T> &p) {
   const R b = R(p[1]);
   const R c = R(p[0]);
 
-  if (a == R{}) {
+  constexpr auto eps = Polynomial<T>::get_eps();
+
+  bool a_is_zero;
+
+  if constexpr (is_complex_v<R>) {
+    a_is_zero = std::abs(a.real()) <= eps && std::abs(a.imag()) <= eps;
+  } else {
+    a_is_zero = std::abs(a) <= eps;
+  }
+
+  if (a_is_zero) {
     throw std::invalid_argument("Leading coefficient must not be zero");
   }
 
