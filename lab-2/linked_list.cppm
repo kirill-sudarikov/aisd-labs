@@ -184,6 +184,61 @@ public:
     _size += other._size;
   }
 
+  void push_head(const T &elm) {
+    if (!_head) {
+      _head = new Node<T>;
+      _head->next = _head;
+    }
+
+    Node<T> *p = new Node<T>;
+    p->info = elm;
+    p->next = _head->next;
+    _head->next = p;
+
+    _size += 1;
+  }
+
+  // Добавление списка LinkedList в начало списка — push_head (перегруженный
+  // метод).
+  void push_head(const LinkedList &other) {
+    if (!other._head) {
+      throw std::invalid_argument("other list must exist");
+    } else if (other._size < 0) {
+      throw std::invalid_argument("list size must be non-negative");
+    }
+
+    if (other._head->next == other._head) {
+      return;
+    }
+
+    if (this == &other) {
+      LinkedList<T> copy(other);
+      push_head(copy);
+      return;
+    }
+
+    if (!_head) {
+      _head = new Node<T>;
+      _head->next = _head;
+    }
+
+    Node<T> *p = _head;
+    Node<T> *q = other._head->next;
+
+    while (q != other._head) {
+      Node<T> *w = new Node<T>;
+
+      w->info = q->info;
+      w->next = p->next;
+      p->next = w;
+
+      p = p->next;
+      q = q->next;
+    }
+
+    _size += other._size;
+  }
+
   ~LinkedList() {
     if (!_head) {
       return;
