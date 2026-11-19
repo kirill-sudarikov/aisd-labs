@@ -16,16 +16,6 @@ private:
   Node<T> *_head = nullptr;
   int _size = 0;
 
-  bool is_equal(const T &a, const T &b, int ulp) const {
-    if constexpr (std::is_floating_point_v<T>) {
-      return std::abs(a - b) <= std::numeric_limits<T>::epsilon() *
-                                    std::max(std::abs(a), std::abs(b)) * ulp ||
-             std::abs(a - b) < std::numeric_limits<T>::min();
-    } else {
-      return a == b;
-    }
-  }
-
 public:
   LinkedList() {
     _head = new Node<T>;
@@ -292,6 +282,16 @@ public:
   }
 
   int size() const { return _size; }
+
+  static bool is_equal(const T &a, const T &b, int ulp) {
+    if constexpr (std::is_floating_point_v<T>) {
+      return std::abs(a - b) <= std::numeric_limits<T>::epsilon() *
+                                    std::max(std::abs(a), std::abs(b)) * ulp ||
+             std::abs(a - b) < std::numeric_limits<T>::min();
+    } else {
+      return a == b;
+    }
+  }
 
   T &operator[](int index) {
     if (!_head || _size <= 0) {
