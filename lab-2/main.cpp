@@ -2,9 +2,10 @@ import std;
 import random;
 import linked_list;
 
-template <typename T>
+template <typename T, typename Compare = std::less<T>>
 LinkedList<T> merge_sorted_unique(const LinkedList<T> &a,
-                                  const LinkedList<T> &b) {
+                                  const LinkedList<T> &b,
+                                  Compare comp = Compare()) {
   LinkedList<T> result;
   int i = 0;
   int j = 0;
@@ -16,15 +17,15 @@ LinkedList<T> merge_sorted_unique(const LinkedList<T> &a,
   };
 
   while (i < a.size() && j < b.size()) {
-    if (a[i] < b[j]) {
+    if (LinkedList<T>::is_equal(a[i], b[j], 2)) {
       add_unique(a[i]);
       i++;
-    } else if (b[j] < a[i]) {
-      add_unique(b[j]);
       j++;
-    } else {
+    } else if (comp(a[i], b[j])) {
       add_unique(a[i]);
       i++;
+    } else {
+      add_unique(b[j]);
       j++;
     }
   }
@@ -47,22 +48,23 @@ int main() {
     LinkedList<double> list_1;
     LinkedList<double> list_2;
 
-    list_1.push_tail(1.0);
-    list_1.push_tail(2.0);
-    list_1.push_tail(3.0);
     list_1.push_tail(4.0);
+    list_1.push_tail(3.0);
+    list_1.push_tail(2.0);
+    list_1.push_tail(1.0);
 
-    list_2.push_tail(1.0);
-    list_2.push_tail(4.0);
-    list_2.push_tail(6.0);
-    list_2.push_tail(10.0);
-    list_2.push_tail(11.0);
+    list_2.push_tail(11.3);
     list_2.push_tail(11.1);
+    list_2.push_tail(6.0);
+    list_2.push_tail(3.3);
+    list_2.push_tail(2.0);
+    list_2.push_tail(1.1);
 
     std::cout << list_1 << std::endl;
     std::cout << list_2 << std::endl;
 
-    LinkedList<double> merged = merge_sorted_unique<double>(list_1, list_2);
+    LinkedList<double> merged =
+        merge_sorted_unique<double, std::greater<double>>(list_1, list_2);
 
     std::cout << merged << std::endl;
   } catch (const std::exception &e) {
